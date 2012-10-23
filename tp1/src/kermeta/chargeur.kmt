@@ -1,0 +1,87 @@
+/* $Id:$ 
+ * Creation : October 15, 2012
+ * Licence  : EPL 
+ * Copyright:
+ * Authors  : 
+ *            29002163
+ */
+@mainClass "root_package::Main"
+@mainOperation "main"
+
+package root_package;
+
+require kermeta
+require "platform:/resource/tp1/src/kermeta/helpers/EcoreDocHelper2.kmt"
+require "platform:/resource/tp1/src/kermeta/helpers/EcoreUtil.kmt"
+using kermeta::standard
+using ecore
+using EcoreUtil
+class Main
+{
+	operation main() : Void is do 
+		//var ecoreDocHelper : EcoreDocHelper init EcoreDocHelper.new
+		//var path : String
+		//path := "/model/spreadsheet.ecore"
+		//ecoreDocHelper.flat(path)
+		//ecoreDocHelper.short(path)
+		
+		
+		
+		// chargement du méta-modèle
+		var util : EcoreUtil init EcoreUtil.new
+		var modelSpreadsheet : EPackage init util.loadModel("/model/spreadsheet.ecore")
+		
+		// chargement de l'helper EcoreDocHelper
+		var helpers : EcoreDocHelper2 init EcoreDocHelper2.new
+		
+		// test de l'opération flat
+		stdio.writeln(" ---------------------------------------")
+		stdio.writeln("|            OPERATION FLAT             |")
+		stdio.writeln(" ---------------------------------------")
+		modelSpreadsheet.eClassifiers.select{ c | c.isKindOf(EClass) }.each{e |
+		do
+			var classCourante : EClass
+			classCourante ?= e
+			if (classCourante != void)
+			then
+				stdio.writeln(helpers.flat(classCourante, ""))
+			end
+		end
+		}
+		stdio.writeln(" --------------------------------------- \n")
+		
+		// test de l'opération short
+		stdio.writeln(" ---------------------------------------")
+		stdio.writeln("|            OPERATION SHORT            |")
+		stdio.writeln(" ---------------------------------------")
+		modelSpreadsheet.eClassifiers.select{ c | c.isKindOf(EClass) }.each{e |
+		do
+			var classCourante : EClass
+			classCourante ?= e
+			if (classCourante != void)
+			then
+				stdio.writeln(helpers.short(classCourante, ""))
+			end
+		end
+		}
+		stdio.writeln(" --------------------------------------- \n")
+		
+		// test de l'opération flatshort
+		stdio.writeln(" ---------------------------------------")
+		stdio.writeln("|         OPERATION FLATSHORT           |")
+		stdio.writeln(" ---------------------------------------")
+		modelSpreadsheet.eClassifiers.select{ c | c.isKindOf(EClass) }.each{e |
+		do
+			var classCourante : EClass
+			classCourante ?= e
+			if (classCourante != void)
+			then
+				stdio.writeln(helpers.flatshort(classCourante, ""))
+			end
+		end
+		}
+		stdio.writeln(" --------------------------------------- \n")
+	
+	end
+}
+

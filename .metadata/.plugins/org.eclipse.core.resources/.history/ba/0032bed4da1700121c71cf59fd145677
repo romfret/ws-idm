@@ -1,0 +1,148 @@
+/* $Id:$ 
+ * Creation : October 11, 2010
+ * Licence  : EPL 
+ * Copyright:
+ * Authors  : 
+ *            29004544
+ */
+package ecore;
+
+require kermeta
+require "ecore_behavior.kmt"
+require "EcoreGenericsHelper.kmt"
+require "EcoreUtil.kmt"
+
+using ecore
+using kermeta::standard
+using kermeta::io
+using EcoreUtil
+
+class EcoreDocHelper2
+{
+	/**
+	 * opération : flat
+	 * affiche la hiérachie d'héritage d'une classe
+	 * @param 	EClass 	e 	la classe dont on veut obtenir la hiérarchie d'héritage
+	 * @param 	EString	s 	une chaine de caractère représentant le niveau d'indentation
+	 *
+	 * @return 	EString 	la chaine de caractère correspondant à l'opération flat sur la classe	
+	 */
+	operation flat(classEntree : EClass, sEntree : EString) : EString
+	is do
+		// on mémorise le nom de la classe dans la chaine de sortie
+		var sSortie : EString
+		sSortie := sEntree + classEntree.name + " : "
+
+		// on applique l'opération flat pour l'ensemble des supertypes de la classe
+		classEntree.eSuperTypes.each { parentClass | do 
+			sSortie := sSortie + "\n" + flat(parentClass, sEntree + "  ")
+		end }
+		
+		// on retourne le résultat
+		result := sSortie
+	end
+	
+	/**
+	 * opération : short
+	 * décrit les attributs et opérations d'une classe
+	 * @param 	EClass 	e 	la classe dont on veut obtenir les attributs et opérations
+	 * @param 	EString	s 	une chaine de caractère représentant le niveau d'indentation
+	 *
+	 * @return 	EString 	la chaine de caractère correspondant à l'opération short sur la classe	
+	 */
+	operation short(classEntree : EClass, sEntree : EString) : EString
+	is do
+		var sSortie : EString init ""
+		
+		// affichage des attributs
+		classEntree.eAttributes.each{ attributCourant |
+		do
+			sSortie := sSortie + "\n" + sEntree + "attr " + attributCourant.name + " : " + attributCourant.eAttributeType.name
+		end
+		}
+		
+		// affichage des références
+		classEntree.eReferences.each{ referenceCourante |
+		do
+			// affichage du type de la référénce
+			sSortie := sSortie + "\n" + sEntree + "ref " + referenceCourante.name + " : " + referenceCourante.eReferenceType.name
+			
+			// affichage des cardinalités (avec gestion du cas particulier des cardinalités -1)
+			var upperBound : EString init ""
+			if (referenceCourante.upperBound == -1)
+			then
+				upperBound := "*"
+			else
+				upperBound := referenceCourante.upperBound.toString
+			end
+			sSortie := sSortie + "[" + referenceCourante.lowerBound.toString + ".." + upperBound + "]"
+		end
+		}
+		
+		// affichages des opérations de la classe
+		classEntree.eOperations.each{ operationCourante |
+		do
+			// affichage du nom de l'opération
+			sSortie := sSortie + "\n" + sEntree + "op " + operationCourante.name
+			
+			// affichage des paramètres de l'opération
+			var bPremiereIteration : Boolean init true
+			sSortie := sSortie + "("
+			operationCourante.eParameters.each{ parametreCourant | 
+			do
+				// dans le cas de la première itération, on n'affiche pas la virgule
+				if (bPremiereIteration)
+				then
+					bPremiereIteration := false
+				else
+					sSortie := sSortie + ", "
+				end
+				// le parametre et le type
+				sSortie := sSortie + parametreCourant.name + " : " + parametreCourant.eType.name
+			end
+			}
+			sSortie := sSortie + ")"
+			
+			// le type de retour
+			if (operationCourante.eType != void)
+			then
+				sSortie := sSortie + " : " + operationCourante.eType.name
+			else
+				sSortie := sSortie + " : Void"
+			end
+			
+		end
+		}
+		
+		// renvoie de la chaine de caractère de l'opération short
+		result := sSortie
+	end
+	
+	/**
+	 * opération : flatshort
+	 * idem à l'opération short en incluant les membres hérités des superclasses
+	 * @param 	EClass 	e 	la classe dont on veut obtenir les attributs et opérations (dont les hérités)
+	 * @param 	EString	s 	une chaine de caractère représentant le niveau d'indentation
+	 *
+	 * @return 	EString 	la chaine de caractère correspondant à l'opération flatshort sur la classe	
+	 */
+	operation flatshort(classEntree : EClass, sEntree : EString) : EString
+	is do
+		// on mémorise le nom de la classe dans la chaine de sortie
+		var sSortie : EString
+		sSortie := sEntree + classEntree.name + " : "
+		
+		// on mémorise l'operation short de la classe dans la chaine de sortie
+		sSortie := sSortie + short(classEntree, sEntree + "  ")
+		
+		// on applique l'opération flatshort pour l'ensemble des supertypes de la classe
+		classEntree.eSuperTypes.each { parentClass | do 
+			sSortie := sSortie + "\n" + flatshort(parentClass, sEntree + "  ")
+		end }
+		
+		// renvoie de la chaine de caractère de l'opération flatshort
+		result := sSortie
+	end
+		
+
+}
